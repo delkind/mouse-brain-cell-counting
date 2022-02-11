@@ -1,0 +1,13 @@
+Shapely
+allensdk
+ipytree
+matplotlib
+numpy
+opencv-python
+scikit-image
+scikit-learn
+scipy
+seaborn
+tqdm
+pyarrow
+gdown
