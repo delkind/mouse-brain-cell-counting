@@ -1,1 +1,2 @@
- jupyter notebook --VoilaConfiguration.enable_nbextensions=True
+jupyter nbextension enable --py widgetsnbextension --sys-prefix
+jupyter serverextension enable voila --sys-prefix
