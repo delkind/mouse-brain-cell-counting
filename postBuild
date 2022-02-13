@@ -1,2 +1,8 @@
 jupyter nbextension enable --py widgetsnbextension --sys-prefix
 jupyter serverextension enable voila --sys-prefix
+mkdir .mouse_connectivity
+cd .mouse_connectivity
+gdown "https://drive.google.com/uc?id=1go1rdESSip2TKT1xFKbYjQRFcCN_IoOq"
+gdown "https://drive.google.com/uc?id=1EH--7lSNPs7lxTe5H1pEJr7oLOiQNTqm"
+gdown "https://drive.google.com/uc?id=1LAIuXA7xKZ0JDbmzesDxvwCqpCztF98Q"
+cd ..
