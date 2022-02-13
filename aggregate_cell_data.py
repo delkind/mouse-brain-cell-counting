@@ -16,8 +16,8 @@ from process_cell_data import get_center_x
 
 mcc = MouseConnectivityCache(manifest_file='./.mouse_connectivity/mouse_connectivity_manifest.json', resolution=25)
 
-if os.path.isfile('mouse_connectivity/tree.pickle'):
-    acronyms, structs_descendants, structs_children = pickle.load(open('mouse_connectivity/tree.pickle', 'rb'))
+if os.path.isfile('./.mouse_connectivity/tree.pickle'):
+    acronyms, structs_descendants, structs_children = pickle.load(open('./.mouse_connectivity/tree.pickle', 'rb'))
 else:
     acronyms = {v: k for k, v in mcc.get_structure_tree().get_id_acronym_map().items()}
     structs_descendants = {i: set(mcc.get_structure_tree().descendant_ids([i])[0])

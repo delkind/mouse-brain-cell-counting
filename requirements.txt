@@ -13,3 +13,9 @@ pyarrow
 gdown
 widgetsnbextension
 voila
+pandas
+statsmodels
+ipywidgets
+ipython
+Pillow
+simplejson
