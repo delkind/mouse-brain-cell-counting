@@ -1,4 +1,4 @@
-#Mouse Brain Cell Counting
+# Mouse Brain Cell Counting
 
 This repository contains Jupyter Notebook that allows working with the data that accompanies the article. You can click the image below to open it in Binder.
 
