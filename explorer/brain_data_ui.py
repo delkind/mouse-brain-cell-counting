@@ -97,7 +97,7 @@ class DataSelector(widgets.VBox):
 
 
 class BrainAggregatesHistogramPlot(widgets.VBox):
-    def __init__(self, data_dir, raw_data_selector):
+    def __init__(self, data_dir, raw_data_selector, title):
         # self.data_selector = DataSelector(data_dir, ResultsSelector(pickle.load(open(f'{data_dir}/../stats.pickle',
         #                                                                              'rb'))))
         self.data_selector = DataSelector(data_dir, raw_data_selector)
@@ -121,7 +121,7 @@ class BrainAggregatesHistogramPlot(widgets.VBox):
         header = widgets.Output()
         with header:
             display(Markdown("----"))
-            display(Markdown("## Histogram"), )
+            display(Markdown(f"## {title}"), )
         super().__init__((
             header,
             self.data_selector,

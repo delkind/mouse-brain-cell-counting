@@ -27,7 +27,7 @@ def prepare_data(data, plot=False):
     print(f"Brains discarded: {len(data.experiment_id.unique()) - len(valid_data.experiment_id.unique())} out "
           f"of {len(data.experiment_id.unique())}. {len(valid_data.experiment_id.unique())} good brains left.")
     print(f"Regions discarded: {len(data.region.unique()) - len(valid_data.region.unique())} out "
-          f"of {len(data.region.unique())}. {len(valid_data.region.unique())} good brains left.")
+          f"of {len(data.region.unique())}. {len(valid_data.region.unique())} good regions left.")
 
     return valid_data
 
@@ -37,7 +37,7 @@ def filter_count_outliers(data):
     control_regions = regions[find_leaves(regions)]
 
     table = pd.pivot_table(data[data.region.isin(control_regions)],
-                           columns=['experiment_id', 'region'])['count'].unstack()
+                           columns=['experiment_id', 'region']).loc['count'].unstack()
     table = ((table - table.median()) / (table.mad() * 1.4826))
 
     left_tail = table < -3
