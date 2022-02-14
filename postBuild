@@ -2,7 +2,7 @@ jupyter nbextension enable --py widgetsnbextension --sys-prefix
 jupyter serverextension enable voila --sys-prefix
 mkdir .mouse_connectivity
 cd .mouse_connectivity
-gdown "https://drive.google.com/uc?id=1go1rdESSip2TKT1xFKbYjQRFcCN_IoOq"
-gdown "https://drive.google.com/uc?id=1EH--7lSNPs7lxTe5H1pEJr7oLOiQNTqm"
-gdown "https://drive.google.com/uc?id=1LAIuXA7xKZ0JDbmzesDxvwCqpCztF98Q"
+wget "https://storage.googleapis.com/www_zeisellab/allen_cellcounting_web/tree.pickle"
+wget "https://storage.googleapis.com/www_zeisellab/allen_cellcounting_web/stats.parquet"
+wget "https://storage.googleapis.com/www_zeisellab/allen_cellcounting_web/stats-sections.parquet"
 cd ..

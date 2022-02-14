@@ -10,7 +10,6 @@ scipy
 seaborn
 tqdm
 pyarrow
-gdown
 widgetsnbextension
 voila
 pandas
