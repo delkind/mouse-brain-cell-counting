@@ -12,7 +12,7 @@ tqdm
 pyarrow
 widgetsnbextension
 voila
-pandas
+pandas==1.2.0
 statsmodels
 ipywidgets
 ipython
