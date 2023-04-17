@@ -2,6 +2,9 @@ jupyter nbextension enable --py widgetsnbextension --sys-prefix
 jupyter serverextension enable voila --sys-prefix
 mkdir .mouse_connectivity
 cd .mouse_connectivity
+rm tree.pickle
+rm stats.parquet
+rm stats-sections.parquet
 wget "https://storage.googleapis.com/www_zeisellab/allen_cellcounting_web/tree.pickle"
 wget "https://storage.googleapis.com/www_zeisellab/allen_cellcounting_web/stats.parquet"
 wget "https://storage.googleapis.com/www_zeisellab/allen_cellcounting_web/stats-sections.parquet"
