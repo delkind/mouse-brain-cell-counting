@@ -50,7 +50,10 @@ def load_my_dataframe():
 df, nodes, parameters = load_my_dataframe()
 
 # Sidebar selectors
+st.sidebar.title("Brain Explorer")
 st.sidebar.header('Basic Options')
+parameters = list(filter(lambda s: '.' not in s, parameters))
+parameters = sorted([p for p in parameters if '|' not in p]) + sorted([p for p in parameters if '|' in p])
 selected_parameter = st.sidebar.selectbox('Parameter', parameters)
 genders = df['gender'].unique()
 selected_genders = st.sidebar.multiselect('Gender', genders, default=[])
@@ -83,6 +86,8 @@ with st.sidebar:
 
 df = df[df.region.isin(selected_regions['checked'])]
 
+complete_selection = (len(df) > 0)
+
 if 'region_group' not in st.session_state:
     st.session_state.region_group = dict()
 
@@ -90,12 +95,12 @@ title_values = [(selected_genders, genders), (selected_strains, strains),
         (selected_transgenic_lines, transgenic_lines), (selected_ids, ids), (selected_regions['checked'], None)]
 title = ":".join([','.join(act) if act is not dv else "<All>" for act, dv in title_values] + [selected_parameter])
 
-st.sidebar.text_input("Selection Title", value=title)
+st.sidebar.text_input("Selection Title", value=title, disabled=not complete_selection)
 
 st.sidebar.header("Selection Management")
 
 # Button to add the selected region to the group
-if st.sidebar.button('Add to Selected'):
+if st.sidebar.button('Add to Selected', disabled=not complete_selection):
     st.session_state.region_group[title] = df[selected_parameter]
 
 
@@ -146,4 +151,4 @@ if st.session_state.region_group:
     st.header("Medians")
     st.dataframe(medians)
     st.header("Statistic Test Results")
-    st.dataframe(pd.DataFrame(test_results))
+    st.dataframe(pd.DataFrame(test_results).set_index(["Description", "Test"]))
