@@ -118,7 +118,7 @@ if not selected_region_groups:
     selected_region_groups = st.session_state.region_group.keys()
 
 col1, col2 = st.sidebar.columns(2, gap='small')
-col1.button('Remove from Selected', on_click=remove_selected)
+col1.button('Remove from Selected', on_click=remove_selected, disabled=(selected_region_groups == st.session_state.region_group.keys()))
 col2.button('Clear Selected', on_click=clear_selected)
 
 st.sidebar.header("Histogram options")
