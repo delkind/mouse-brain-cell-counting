@@ -150,5 +150,6 @@ if st.session_state.region_group:
                                              st.session_state.region_group[r]).statistic}]
     st.header("Medians")
     st.dataframe(medians)
-    st.header("Statistic Test Results")
-    st.dataframe(pd.DataFrame(test_results).set_index(["Description", "Test"]))
+    if test_results:
+        st.header("Statistic Test Results")
+        st.dataframe(pd.DataFrame(test_results).set_index(["Description", "Test"]))
