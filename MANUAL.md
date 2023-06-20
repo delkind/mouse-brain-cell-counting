@@ -4,7 +4,7 @@ This user manual will guide you on how to use the Brain Explorer Streamlit app.
 
 ## Overview
 
-The Brain Explorer app is designed to visualize and explore mouse brain data. You can display several statistics and filter the data based on gender, strain, transgenic line, and brain ID. 
+The Brain Explorer app is designed to visualize and explore mouse brain data. You can display several statistics and filter the data based on sex, strain, transgenic line, and brain ID. 
 
 ## Accessing the App
 Use the button below to access the app.
@@ -23,7 +23,7 @@ Under "Basic Options", you can select the following:
 
 - **Parameter:** Select the parameter (count, density, etc.) to visualize from the dropdown menu.
 
-- **Gender:** Select one or more genders to filter the data. If none is selected, data for all genders will be included.
+- **Sex:** Select one or more sexs to filter the data. If none is selected, data for all sexs will be included.
 
 - **Strain:** Select one or more strains to filter the data. If none is selected, data for all strains will be included.
 
