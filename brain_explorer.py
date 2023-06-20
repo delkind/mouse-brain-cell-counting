@@ -56,7 +56,7 @@ parameters = list(filter(lambda s: '.' not in s, parameters))
 parameters = sorted([p for p in parameters if '|' not in p]) + sorted([p for p in parameters if '|' in p])
 selected_parameter = st.sidebar.selectbox('Parameter', parameters)
 genders = df['gender'].unique()
-selected_genders = st.sidebar.multiselect('Gender', genders, default=[])
+selected_genders = st.sidebar.multiselect('Sex', genders, default=[])
 if not selected_genders:
     selected_genders = genders
 
