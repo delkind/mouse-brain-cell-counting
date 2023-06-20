@@ -145,9 +145,10 @@ if st.session_state.region_group:
 
     for l, r in set(itertools.combinations(list(selected_region_groups), 2)):
         for test_name, test in tests.items():
+            result = test(st.session_state.region_group[l].dropna().to_numpy(),
+                     st.session_state.region_group[r].dropna().to_numpy())
             test_results += [{**{'Description': f'{l}, {r}'}, 'Test': test_name,
-                              "Result": test(st.session_state.region_group[l],
-                                             st.session_state.region_group[r]).statistic}]
+                              "Statistic": result.statistic, 'P-Value': result.pvalue}]
     st.header("Medians")
     st.dataframe(medians)
     if test_results:
