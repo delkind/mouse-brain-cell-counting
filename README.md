@@ -4,6 +4,8 @@ This repository contains Jupyter Notebook and Streamlit app that allow working w
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://delkind-mouse-brain-cell-counting-brain-explorer-3ek3v5.streamlit.app/)
 
+Please see [the manual](MANUAL.md) for further instructions.
+
 You may also execute the Notebook in Binder by clicking the button below. Please note that the first Binder launch entails creating an image and therefore may take up to 15 minutes, and since Binder is rather slow in general, we encourage everyone to use Streamlit app.
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/delkind/mouse-brain-cell-counting.git/HEAD?urlpath=%2Fvoila%2Frender%2FBrainExplorerUi.ipynb)
