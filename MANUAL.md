@@ -9,7 +9,7 @@ The Brain Explorer app is designed to visualize and explore mouse brain data. Yo
 ## Accessing the App
 Use the button below to access the app.
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)]([https://<your-custom-subdomain>.streamlit.app](https://delkind-mouse-brain-cell-counting-brain-explorer-3ek3v5.streamlit.app/))
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://delkind-mouse-brain-cell-counting-brain-explorer-3ek3v5.streamlit.app/)
 
 ## Using the App
 
