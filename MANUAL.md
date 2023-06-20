@@ -23,7 +23,7 @@ Under "Basic Options", you can select the following:
 
 - **Parameter:** Select the parameter (count, density, etc.) to visualize from the dropdown menu.
 
-- **Sex:** Select one or more sexs to filter the data. If none is selected, data for all sexs will be included.
+- **Sex:** Select one or more sexes to filter the data. If none is selected, data for all sexs will be included.
 
 - **Strain:** Select one or more strains to filter the data. If none is selected, data for all strains will be included.
 
