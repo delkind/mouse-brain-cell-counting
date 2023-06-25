@@ -22,6 +22,7 @@ The sidebar on the left side of the app contains the controls for selecting and 
 Under "Basic Options", you can select the following:
 
 - **Parameter:** Select the parameter to visualize from the dropdown menu.
+- **Hemishpere:** Select the hemisphere for which to visualize the parameter. Note not all the parameters are available for separate hemispheres
 - **Aggregation (for microscopic parameters):** If you've selected a microscopic parameter (such as area, perimeter or diameter), select the aggregation method.
 - **Sex:** Select one or more genders to filter the data. If none is selected, data for all genders will be included.
 - **Strain:** Select one or more strains to filter the data. If none is selected, data for all strains will be included.

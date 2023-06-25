@@ -2,6 +2,7 @@ import itertools
 import operator
 import os
 import urllib.request
+from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -27,6 +28,23 @@ HIDDEN_PARAMETERS = ['count',
                      'brightness',
                      'injection']
 
+BOTH_HEMISPHERES = 'both'
+
+
+def separate_hemispheres(parameters):
+    parameter_dict = defaultdict(list)
+
+    for param in parameters:
+        if param.endswith('_left'):
+            param_name = param[:-5]  # remove '_left'
+            parameter_dict[param_name].append('left')
+        elif param.endswith('_right'):
+            param_name = param[:-6]  # remove '_right'
+            parameter_dict[param_name].append('right')
+        else:
+            parameter_dict[param] += []
+
+    return {k: ([], [BOTH_HEMISPHERES] + v) for k, v in parameter_dict.items()}
 
 # Function to load your dataframe, decorated with st.cache so it's only loaded once
 @st.cache_data
@@ -75,16 +93,20 @@ st.sidebar.header('Basic Options')
 parameters = list(filter(lambda s: '.' not in s, parameters))
 macroscopic = sorted([p for p in parameters if '|' not in p])
 microscopic = sorted([p for p in parameters if '|' in p])
-macroscopic = {k: [] for k in macroscopic}
+
+macroscopic = separate_hemispheres(macroscopic)
+
 microscopic = [(k.split('|')[0], k.split('|')[1]) for k in microscopic]
 microscopic = sorted(microscopic, key=operator.itemgetter(0))  # this might be unnecessary
-microscopic = {k: [t[1] for t in v] for k, v in itertools.groupby(microscopic, operator.itemgetter(0))}
+microscopic = {k: ([t[1] for t in v], [BOTH_HEMISPHERES]) for k, v in itertools.groupby(microscopic, operator.itemgetter(0))}
 parameters = {**microscopic, **macroscopic}
 selected_param = st.sidebar.selectbox('Parameter', [v for v in sorted(macroscopic.keys()) +
                                                     sorted(microscopic.keys()) if v not in HIDDEN_PARAMETERS])
-selected_aggregation = st.sidebar.selectbox('Aggregation (for microscopic parameters)', parameters[selected_param])
+selected_hemisphere = st.sidebar.selectbox('Hemisphere', parameters[selected_param][1])
+selected_aggregation = st.sidebar.selectbox('Aggregation (for microscopic parameters)', parameters[selected_param][0])
 
-selected_parameter = '|'.join([v for v in [selected_param, selected_aggregation] if v is not None])
+selected_parameter = '_'.join([v for v in [selected_param, selected_hemisphere] if v is not BOTH_HEMISPHERES])
+selected_parameter = '|'.join([v for v in [selected_parameter, selected_aggregation] if v is not None])
 
 genders = df['gender'].unique()
 selected_genders = st.sidebar.multiselect('Sex', genders, default=[])
