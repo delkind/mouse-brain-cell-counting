@@ -93,12 +93,6 @@ if not selected_transgenic_lines:
     selected_transgenic_lines = transgenic_lines
 
 df = df[df.transgenic_line.isin(selected_transgenic_lines)]
-ids = df['experiment_id'].unique()
-selected_ids = st.sidebar.multiselect('ID', ids, default=[])
-if not selected_ids:
-    selected_ids = ids
-
-df = df[df.experiment_id.isin(selected_ids)]
 
 st.sidebar.header("Region")
 with st.sidebar:
@@ -112,7 +106,7 @@ if 'region_group' not in st.session_state:
     st.session_state.region_group = dict()
 
 title_values = [(selected_genders, genders), (selected_strains, strains),
-        (selected_transgenic_lines, transgenic_lines), (selected_ids, ids), (selected_regions['checked'], None)]
+        (selected_transgenic_lines, transgenic_lines), (selected_regions['checked'], None)]
 title = ":".join([','.join(act) if act is not dv else "<All>" for act, dv in title_values] + [selected_parameter])
 
 st.sidebar.text_input("Selection Title", value=title, disabled=not complete_selection)
