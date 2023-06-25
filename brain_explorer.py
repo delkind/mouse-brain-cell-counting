@@ -164,5 +164,7 @@ if st.session_state.region_group:
         st.header("Statistic Test Results")
         st.dataframe(pd.DataFrame(test_results).set_index(["Description", "Test"]))
 else:
-    st.markdown(requests.get('https://raw.githubusercontent.com/delkind/'
-                                           'mouse-brain-cell-counting/master/MANUAL.md').content.decode())
+    manual = requests.get('https://raw.githubusercontent.com/delkind/' \
+                          'mouse-brain-cell-counting/master/MANUAL.md').content.decode()
+    manual = manual[manual.find("## Using the"):]
+    st.markdown(manual)
