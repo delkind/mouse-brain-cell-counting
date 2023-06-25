@@ -46,6 +46,7 @@ def separate_hemispheres(parameters):
 
     return {k: ([], [BOTH_HEMISPHERES] + v) for k, v in parameter_dict.items()}
 
+
 # Function to load your dataframe, decorated with st.cache so it's only loaded once
 @st.cache_data
 def load_my_dataframe():
@@ -87,83 +88,7 @@ def load_my_dataframe():
     return joined.reset_index(), nodes, nodes_dict, stats.set_index(['experiment_id', 'region']).columns
 
 
-df, nodes, nodes_dict, parameters = load_my_dataframe()
-
-# Sidebar selectors
-st.sidebar.title('Brain Explorer')
-st.sidebar.markdown("See <a href='https://elifesciences.org/articles"
-                    "/82376'>the article</a> for details", unsafe_allow_html=True)
-st.sidebar.header('Basic Options')
-parameters = list(filter(lambda s: '.' not in s, parameters))
-macroscopic = sorted([p for p in parameters if '|' not in p])
-microscopic = sorted([p for p in parameters if '|' in p])
-
-macroscopic = separate_hemispheres(macroscopic)
-
-microscopic = [(k.split('|')[0], k.split('|')[1]) for k in microscopic]
-microscopic = sorted(microscopic, key=operator.itemgetter(0))  # this might be unnecessary
-microscopic = {k: ([t[1] for t in v], [BOTH_HEMISPHERES]) for k, v in itertools.groupby(microscopic, operator.itemgetter(0))}
-parameters = {**microscopic, **macroscopic}
-selected_param = st.sidebar.selectbox('Parameter', [v for v in sorted(macroscopic.keys()) +
-                                                    sorted(microscopic.keys()) if v not in HIDDEN_PARAMETERS])
-selected_hemisphere = st.sidebar.selectbox('Hemisphere', parameters[selected_param][1])
-selected_aggregation = st.sidebar.selectbox('Aggregation (for microscopic parameters)', parameters[selected_param][0])
-
-selected_parameter = '_'.join([v for v in [selected_param, selected_hemisphere] if v is not BOTH_HEMISPHERES])
-selected_parameter = '|'.join([v for v in [selected_parameter, selected_aggregation] if v is not None])
-
-genders = df['gender'].unique()
-selected_genders = st.sidebar.multiselect('Sex', genders, default=[])
-if not selected_genders:
-    selected_genders = genders
-
-df = df[df.gender.isin(selected_genders)]
-strains = df['strain'].unique()
-selected_strains = st.sidebar.multiselect('Strain', strains, default=[])
-if not selected_strains:
-    selected_strains = strains
-
-df = df[df.strain.isin(selected_strains)]
-transgenic_lines = df['transgenic_line'].unique()
-selected_transgenic_lines = st.sidebar.multiselect('Transgenic Line', transgenic_lines, default=[])
-if not selected_transgenic_lines:
-    selected_transgenic_lines = transgenic_lines
-
-df = df[df.transgenic_line.isin(selected_transgenic_lines)]
-
-st.sidebar.header("Region")
-
-node = st.sidebar.selectbox("Search region", sorted(nodes_dict.keys()))
-
-with st.sidebar:
-    selected_regions = tree_select(nodes,
-                                   'all',
-                                   expanded=list(nodes_dict[node]),
-                                   checked=[node] if node != '' else [],
-                                   only_leaf_checkboxes=False,
-                                   no_cascade=True)
-
-df = df[df.region.isin(selected_regions['checked'])]
-
-complete_selection = (len(df) > 0)
-
-if 'region_group' not in st.session_state:
-    st.session_state.region_group = dict()
-
-title_values = [(selected_genders, genders), (selected_strains, strains),
-                (selected_transgenic_lines, transgenic_lines), (selected_regions['checked'], None)]
-title = ":".join([','.join(act) if act is not dv else "<All>" for act, dv in title_values] + [selected_parameter])
-
-st.sidebar.text_input("Selection Title", value=title, disabled=not complete_selection)
-
-st.sidebar.header("Selection Management")
-
-# Button to add the selected region to the group
-if st.sidebar.button('Add to Selected', disabled=not complete_selection):
-    st.session_state.region_group[title] = df[selected_parameter]
-
-
-def remove_selected():
+def remove_selected(selected_region_groups=None):
     for g in selected_region_groups:
         del st.session_state.region_group[g]
 
@@ -172,43 +97,119 @@ def clear_selected():
     st.session_state.region_group = dict()
 
 
-selected_region_groups = st.sidebar.multiselect('Selected', st.session_state.region_group.keys())
-if not selected_region_groups:
-    selected_region_groups = st.session_state.region_group.keys()
+def render_histogram_options():
+    st.sidebar.header("Histogram options")
+    bins = st.sidebar.slider("Histogram bins", min_value=10, max_value=50, value=20)
+    show_median = st.sidebar.checkbox("Show median", value=True)
+    show_steps = st.sidebar.checkbox("Show raw histogram (steps)", value=True)
+    return bins, show_median, show_steps
 
-col1, col2 = st.sidebar.columns(2, gap='small')
-col1.button('Remove from Selected', on_click=remove_selected,
-            disabled=(selected_region_groups == st.session_state.region_group.keys()))
-col2.button('Clear All', on_click=clear_selected)
 
-st.sidebar.header("Histogram options")
+def render_selection_management(complete_selection, df, selected_parameter, title):
+    st.sidebar.header("Selection Management")
+    # Button to add the selected region to the group
+    if st.sidebar.button('Add to Selected', disabled=not complete_selection):
+        st.session_state.region_group[title] = df[selected_parameter]
+    selected_region_groups = st.sidebar.multiselect('Selected', st.session_state.region_group.keys())
+    if not selected_region_groups:
+        selected_region_groups = st.session_state.region_group.keys()
+    col1, col2 = st.sidebar.columns(2, gap='small')
+    col1.button('Remove from Selected', on_click=lambda: remove_selected(selected_region_groups),
+                disabled=(selected_region_groups == st.session_state.region_group.keys()))
+    col2.button('Clear All', on_click=clear_selected)
+    return selected_region_groups
 
-bins = st.sidebar.slider("Histogram bins", min_value=10, max_value=50, value=20)
-show_median = st.sidebar.checkbox("Show median", value=True)
-show_steps = st.sidebar.checkbox("Show raw histogram (steps)", value=True)
 
-if st.session_state.region_group:
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-    for name in selected_region_groups:
-        hist(ax, st.session_state.region_group[name], bins=bins, raw_hist=show_steps, median=show_median, label=name)
-    ax.legend()
-    st.header("Histogram")
-    st.pyplot(fig)
+def render_region_selection(df, genders, nodes, nodes_dict, selected_genders, selected_parameter, selected_strains,
+                            selected_transgenic_lines, strains, transgenic_lines):
+    st.sidebar.header("Region")
+    node = st.sidebar.selectbox("Search region", sorted(nodes_dict.keys()))
+    with st.sidebar:
+        selected_regions = tree_select(nodes,
+                                       'all',
+                                       expanded=list(nodes_dict[node]),
+                                       checked=[node] if node != '' else [],
+                                       only_leaf_checkboxes=False,
+                                       no_cascade=True)
+    df = df[df.region.isin(selected_regions['checked'])]
+    complete_selection = (len(df) > 0)
+    if 'region_group' not in st.session_state:
+        st.session_state.region_group = dict()
+    title_values = [(selected_genders, genders), (selected_strains, strains),
+                    (selected_transgenic_lines, transgenic_lines), (selected_regions['checked'], None)]
+    title = ":".join([','.join(act) if act is not dv else "<All>" for act, dv in title_values] + [selected_parameter])
+    st.sidebar.text_input("Selection Title", value=title, disabled=not complete_selection)
+    return complete_selection, df, title
 
+
+def render_basic_parameters(df, macroscopic, microscopic):
+    st.sidebar.header('Basic Options')
+    parameters = {**microscopic, **macroscopic}
+    selected_param = st.sidebar.selectbox('Parameter', [v for v in sorted(macroscopic.keys()) +
+                                                        sorted(microscopic.keys()) if v not in HIDDEN_PARAMETERS])
+    selected_hemisphere = st.sidebar.selectbox('Hemisphere', parameters[selected_param][1])
+    selected_aggregation = st.sidebar.selectbox('Aggregation (for microscopic parameters)',
+                                                parameters[selected_param][0])
+    selected_parameter = '_'.join([v for v in [selected_param, selected_hemisphere] if v is not BOTH_HEMISPHERES])
+    selected_parameter = '|'.join([v for v in [selected_parameter, selected_aggregation] if v is not None])
+    genders = df['gender'].unique()
+    selected_genders = st.sidebar.multiselect('Sex', genders, default=[])
+    if not selected_genders:
+        selected_genders = genders
+    df = df[df.gender.isin(selected_genders)]
+    strains = df['strain'].unique()
+    selected_strains = st.sidebar.multiselect('Strain', strains, default=[])
+    if not selected_strains:
+        selected_strains = strains
+    df = df[df.strain.isin(selected_strains)]
+    transgenic_lines = df['transgenic_line'].unique()
+    selected_transgenic_lines = st.sidebar.multiselect('Transgenic Line', transgenic_lines, default=[])
+    if not selected_transgenic_lines:
+        selected_transgenic_lines = transgenic_lines
+    df = df[df.transgenic_line.isin(selected_transgenic_lines)]
+    return df, genders, selected_genders, selected_parameter, selected_strains, selected_transgenic_lines, strains, transgenic_lines
+
+
+def render_sidebar(df, macroscopic, microscopic, nodes, nodes_dict):
+    # Sidebar selectors
+    st.sidebar.title('Brain Explorer')
+    st.sidebar.markdown("See <a href='https://elifesciences.org/articles"
+                        "/82376'>the article</a> for details", unsafe_allow_html=True)
+    df, genders, selected_genders, selected_parameter, selected_strains, selected_transgenic_lines, strains, transgenic_lines = render_basic_parameters(
+        df, macroscopic, microscopic)
+    complete_selection, df, title = render_region_selection(df, genders, nodes, nodes_dict, selected_genders,
+                                                            selected_parameter, selected_strains,
+                                                            selected_transgenic_lines, strains, transgenic_lines)
+    selected_region_groups = render_selection_management(complete_selection, df, selected_parameter, title)
+    bins, show_median, show_steps = render_histogram_options()
+    return bins, selected_region_groups, show_median, show_steps
+
+
+def render_manual():
+    manual = requests.get('https://raw.githubusercontent.com/delkind/'
+                          'mouse-brain-cell-counting/master/MANUAL.md').content.decode()
+    manual = manual[manual.find("## Using the"):]
+    st.markdown(manual)
+
+
+def render_statistic_test_results(selected_region_groups):
     tests = {'T-Test': stats.ttest_ind, 'RankSum': stats.ranksums, 'KS-Test': stats.kstest}
-
     test_results = []
-    medians = []
-
-    for g in selected_region_groups:
-        medians += [{'Group': g, 'Median': st.session_state.region_group[g].median()}]
-
     for l, r in set(itertools.combinations(list(selected_region_groups), 2)):
         for test_name, test in tests.items():
             result = test(st.session_state.region_group[l].dropna().to_numpy(),
                           st.session_state.region_group[r].dropna().to_numpy())
             test_results += [{**{'Description': f'{l}, {r}'}, 'Test': test_name,
                               "Statistic": result.statistic, 'P-Value': result.pvalue}]
+    if test_results:
+        st.header("Statistic Test Results")
+        st.dataframe(pd.DataFrame(test_results).set_index(["Description", "Test"]))
+
+
+def render_medians(selected_region_groups):
+    medians = []
+    for g in selected_region_groups:
+        medians += [{'Group': g, 'Median': st.session_state.region_group[g].median()}]
     st.header("Medians")
     st.dataframe(pd.DataFrame(medians).set_index('Group'), column_config={
         "Median": st.column_config.NumberColumn(
@@ -216,11 +217,50 @@ if st.session_state.region_group:
             format="%.3e",
         )
     })
-    if test_results:
-        st.header("Statistic Test Results")
-        st.dataframe(pd.DataFrame(test_results).set_index(["Description", "Test"]))
-else:
-    manual = requests.get('https://raw.githubusercontent.com/delkind/' \
-                          'mouse-brain-cell-counting/master/MANUAL.md').content.decode()
-    manual = manual[manual.find("## Using the"):]
-    st.markdown(manual)
+
+
+def render_histogram(bins, selected_region_groups, show_median, show_steps):
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+    for name in selected_region_groups:
+        hist(ax, st.session_state.region_group[name], bins=bins, raw_hist=show_steps, median=show_median,
+             label=name)
+    ax.legend()
+    st.header("Histogram")
+    st.pyplot(fig)
+
+
+def render_data_results(bins, selected_region_groups, show_median, show_steps):
+    render_histogram(bins, selected_region_groups, show_median, show_steps)
+    render_medians(selected_region_groups)
+    render_statistic_test_results(selected_region_groups)
+
+
+def render_main_screen(bins, selected_region_groups, show_median, show_steps):
+    if st.session_state.region_group:
+        render_data_results(bins, selected_region_groups, show_median, show_steps)
+    else:
+        render_manual()
+
+
+def compute_parameters(parameters):
+    parameters = list(filter(lambda s: '.' not in s, parameters))
+    macroscopic = sorted([p for p in parameters if '|' not in p])
+    microscopic = sorted([p for p in parameters if '|' in p])
+    macroscopic = separate_hemispheres(macroscopic)
+    microscopic = [(k.split('|')[0], k.split('|')[1]) for k in microscopic]
+    microscopic = sorted(microscopic, key=operator.itemgetter(0))  # this might be unnecessary
+    microscopic = {k: ([t[1] for t in v], [BOTH_HEMISPHERES]) for k, v in
+                   itertools.groupby(microscopic, operator.itemgetter(0))}
+    return macroscopic, microscopic
+
+
+def main():
+    df, nodes, nodes_dict, parameters = load_my_dataframe()
+    macroscopic, microscopic = compute_parameters(parameters)
+
+    bins, selected_region_groups, show_median, show_steps = render_sidebar(df, macroscopic, microscopic, nodes,
+                                                                           nodes_dict)
+    render_main_screen(bins, selected_region_groups, show_median, show_steps)
+
+
+main()
