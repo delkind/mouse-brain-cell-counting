@@ -1,4 +1,5 @@
 import itertools
+import operator
 import os
 import urllib.request
 
@@ -62,8 +63,18 @@ st.sidebar.markdown("See <a href='https://elifesciences.org/articles"
                     "/82376'>the article</a> for details", unsafe_allow_html=True)
 st.sidebar.header('Basic Options')
 parameters = list(filter(lambda s: '.' not in s, parameters))
-parameters = sorted([p for p in parameters if '|' not in p]) + sorted([p for p in parameters if '|' in p])
-selected_parameter = st.sidebar.selectbox('Parameter', parameters)
+macroscopic = sorted([p for p in parameters if '|' not in p])
+microscopic = sorted([p for p in parameters if '|' in p])
+macroscopic = {k: [] for k in macroscopic}
+microscopic = [(k.split('|')[0], k.split('|')[1]) for k in microscopic]
+microscopic = sorted(microscopic, key=operator.itemgetter(0))  # this might be unnecessary
+microscopic = {k: [t[1] for t in v] for k, v in itertools.groupby(microscopic, operator.itemgetter(0))}
+parameters = {**microscopic, **macroscopic}
+selected_param = st.sidebar.selectbox('Parameter', sorted(macroscopic.keys()) + sorted(microscopic.keys()))
+selected_aggregation = st.sidebar.selectbox('Aggregation (for microscopic parameters)', parameters[selected_param])
+
+selected_parameter = '|'.join([v for v in [selected_param, selected_aggregation] if v is not None])
+
 genders = df['gender'].unique()
 selected_genders = st.sidebar.multiselect('Sex', genders, default=[])
 if not selected_genders:
@@ -159,7 +170,12 @@ if st.session_state.region_group:
             test_results += [{**{'Description': f'{l}, {r}'}, 'Test': test_name,
                               "Statistic": result.statistic, 'P-Value': result.pvalue}]
     st.header("Medians")
-    st.dataframe(medians)
+    st.dataframe(pd.DataFrame(medians).set_index('Group'), column_config={
+        "Median": st.column_config.NumberColumn(
+            "Median",
+            format="%.3e",
+        )
+    })
     if test_results:
         st.header("Statistic Test Results")
         st.dataframe(pd.DataFrame(test_results).set_index(["Description", "Test"]))

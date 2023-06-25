@@ -21,19 +21,15 @@ The sidebar on the left side of the app contains the controls for selecting and 
 
 Under "Basic Options", you can select the following:
 
-- **Parameter:** Select the parameter (count, density, etc.) to visualize from the dropdown menu.
-
-- **Sex:** Select one or more sexes to filter the data. If none is selected, data for all sexs will be included.
-
+- **Parameter:** Select the parameter to visualize from the dropdown menu.
+- **Aggregation (for microscopic parameters):** If you've selected a microscopic parameter (such as area, perimeter or diameter), select the aggregation method.
+- **Sex:** Select one or more genders to filter the data. If none is selected, data for all genders will be included.
 - **Strain:** Select one or more strains to filter the data. If none is selected, data for all strains will be included.
-
 - **Transgenic Line:** Select one or more transgenic lines to filter the data. If none is selected, data for all transgenic lines will be included.
-
-- **ID:** Select one or more IDs to filter the data. If none is selected, data for all IDs will be included.
 
 #### Region
 
-Under "Region", you can select the brain region(s) to include in your data. Note that you have to select at least one region.
+Under "Region", you can select the brain region(s) to include in your data. If none is selected, data for all regions will be included.
 
 #### Selection Title
 
@@ -55,7 +51,9 @@ The main area of the app displays the histogram of your selected data and the st
 
 The histogram visualizes the data of your current selection or selections. Each selection is represented by a differently colored histogram.
 
-Below the histogram, you can view the medians for each of your selected groups and the results of statistical tests comparing the groups.
+Below the histogram, you can view the medians for each of your selected groups and the results of statistical tests comparing the groups. The statistical tests performed include T-Test, RankSum, and KS-Test.
+
+If no selection has been made, the app will display the original user manual.
 
 ## Conclusion
 
