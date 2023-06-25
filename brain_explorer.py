@@ -4,6 +4,7 @@ import urllib.request
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import requests
 import streamlit as st
 from allensdk.core.mouse_connectivity_cache import MouseConnectivityCache
 from scipy import stats
@@ -37,6 +38,12 @@ def load_my_dataframe():
     stats = pd.read_parquet(data_file)
     exps = mcc.get_experiments(dataframe=True)
     exps = exps.drop_duplicates(['id']).set_index('id')
+
+    exps = exps[['gender', 'strain', 'transgenic_line']].copy()
+    exps.strain[exps.strain.isin([None])] = 'Unspecified'
+    exps.transgenic_line[exps.transgenic_line.isin([None])] = 'Unspecified'
+    exps.gender[exps.gender.isin([None])] = 'Unspecified'
+
     joined = stats.join(exps, on='experiment_id').set_index("experiment_id")
 
     structure_tree = mcc.get_structure_tree()
@@ -50,7 +57,9 @@ def load_my_dataframe():
 df, nodes, parameters = load_my_dataframe()
 
 # Sidebar selectors
-st.sidebar.title("Brain Explorer")
+st.sidebar.title('Brain Explorer')
+st.sidebar.markdown("See <a href='https://elifesciences.org/articles"
+                    "/82376'>the article</a> for details", unsafe_allow_html=True)
 st.sidebar.header('Basic Options')
 parameters = list(filter(lambda s: '.' not in s, parameters))
 parameters = sorted([p for p in parameters if '|' not in p]) + sorted([p for p in parameters if '|' in p])
@@ -154,3 +163,6 @@ if st.session_state.region_group:
     if test_results:
         st.header("Statistic Test Results")
         st.dataframe(pd.DataFrame(test_results).set_index(["Description", "Test"]))
+else:
+    st.markdown(requests.get('https://raw.githubusercontent.com/delkind/'
+                                           'mouse-brain-cell-counting/master/MANUAL.md').content.decode())
