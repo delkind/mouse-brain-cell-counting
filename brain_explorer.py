@@ -17,6 +17,16 @@ from explorer.explorer_utils import hist
 mcc = MouseConnectivityCache(manifest_file='./.mouse_connectivity/mouse_connectivity_manifest.json', resolution=25)
 structure_tree = mcc.get_structure_tree()
 
+HIDDEN_PARAMETERS = ['count',
+                     'count_left',
+                     'count_right',
+                     'density',
+                     'density_left',
+                     'density_right',
+                     'section_count',
+                     'brightness',
+                     'injection']
+
 
 # Function to load your dataframe, decorated with st.cache so it's only loaded once
 @st.cache_data
@@ -70,7 +80,8 @@ microscopic = [(k.split('|')[0], k.split('|')[1]) for k in microscopic]
 microscopic = sorted(microscopic, key=operator.itemgetter(0))  # this might be unnecessary
 microscopic = {k: [t[1] for t in v] for k, v in itertools.groupby(microscopic, operator.itemgetter(0))}
 parameters = {**microscopic, **macroscopic}
-selected_param = st.sidebar.selectbox('Parameter', sorted(macroscopic.keys()) + sorted(microscopic.keys()))
+selected_param = st.sidebar.selectbox('Parameter', [v for v in sorted(macroscopic.keys()) +
+                                                    sorted(microscopic.keys()) if v not in HIDDEN_PARAMETERS])
 selected_aggregation = st.sidebar.selectbox('Aggregation (for microscopic parameters)', parameters[selected_param])
 
 selected_parameter = '|'.join([v for v in [selected_param, selected_aggregation] if v is not None])
@@ -106,7 +117,7 @@ if 'region_group' not in st.session_state:
     st.session_state.region_group = dict()
 
 title_values = [(selected_genders, genders), (selected_strains, strains),
-        (selected_transgenic_lines, transgenic_lines), (selected_regions['checked'], None)]
+                (selected_transgenic_lines, transgenic_lines), (selected_regions['checked'], None)]
 title = ":".join([','.join(act) if act is not dv else "<All>" for act, dv in title_values] + [selected_parameter])
 
 st.sidebar.text_input("Selection Title", value=title, disabled=not complete_selection)
@@ -132,7 +143,8 @@ if not selected_region_groups:
     selected_region_groups = st.session_state.region_group.keys()
 
 col1, col2 = st.sidebar.columns(2, gap='small')
-col1.button('Remove from Selected', on_click=remove_selected, disabled=(selected_region_groups == st.session_state.region_group.keys()))
+col1.button('Remove from Selected', on_click=remove_selected,
+            disabled=(selected_region_groups == st.session_state.region_group.keys()))
 col2.button('Clear Selected', on_click=clear_selected)
 
 st.sidebar.header("Histogram options")
@@ -160,7 +172,7 @@ if st.session_state.region_group:
     for l, r in set(itertools.combinations(list(selected_region_groups), 2)):
         for test_name, test in tests.items():
             result = test(st.session_state.region_group[l].dropna().to_numpy(),
-                     st.session_state.region_group[r].dropna().to_numpy())
+                          st.session_state.region_group[r].dropna().to_numpy())
             test_results += [{**{'Description': f'{l}, {r}'}, 'Test': test_name,
                               "Statistic": result.statistic, 'P-Value': result.pvalue}]
     st.header("Medians")
