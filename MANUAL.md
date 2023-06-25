@@ -30,7 +30,7 @@ Under "Basic Options", you can select the following:
 
 #### Region
 
-Under "Region", you can select the brain region(s) to include in your data. If none is selected, data for all regions will be included.
+Under "Region", you can select the brain region(s) to include in your data. You can select region from the tree and use search box to locate a region within the tree.
 
 #### Selection Title
 

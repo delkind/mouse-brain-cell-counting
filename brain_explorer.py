@@ -49,13 +49,16 @@ def separate_hemispheres(parameters):
 # Function to load your dataframe, decorated with st.cache so it's only loaded once
 @st.cache_data
 def load_my_dataframe():
-    def convert_node(node, regions):
+    def convert_node(node, regions, path, nodes_dict):
         children = structure_tree.children([node['id']])[0]
-        children = [convert_node(child, regions) for child in children]
+        children = [convert_node(child, regions, path + [child['acronym']], nodes_dict) for child in children]
+        children = [child for child in children if child['label'] in regions or child['children']]
+        for child in children:
+            nodes_dict[child['label']] = path
         return {
             "label": node['acronym'],
             "value": node['acronym'],
-            "children": [child for child in children if child['label'] in regions or child['children']]
+            "children": children
         }
 
     mcc = MouseConnectivityCache(manifest_file='./.mouse_connectivity/mouse_connectivity_manifest.json', resolution=25)
@@ -78,12 +81,13 @@ def load_my_dataframe():
     structure_tree = mcc.get_structure_tree()
 
     root = structure_tree.get_structures_by_acronym(['grey'])[0]
-    nodes = [convert_node(root, set(joined.region.unique()))]
+    nodes_dict = {"": ['grey']}
+    nodes = [convert_node(root, set(joined.region.unique()), ['grey'], nodes_dict)]
 
-    return joined.reset_index(), nodes, stats.set_index(['experiment_id', 'region']).columns
+    return joined.reset_index(), nodes, nodes_dict, stats.set_index(['experiment_id', 'region']).columns
 
 
-df, nodes, parameters = load_my_dataframe()
+df, nodes, nodes_dict, parameters = load_my_dataframe()
 
 # Sidebar selectors
 st.sidebar.title('Brain Explorer')
@@ -128,8 +132,16 @@ if not selected_transgenic_lines:
 df = df[df.transgenic_line.isin(selected_transgenic_lines)]
 
 st.sidebar.header("Region")
+
+node = st.sidebar.selectbox("Search region", sorted(nodes_dict.keys()))
+
 with st.sidebar:
-    selected_regions = tree_select(nodes, 'all', only_leaf_checkboxes=False, no_cascade=True)
+    selected_regions = tree_select(nodes,
+                                   'all',
+                                   expanded=list(nodes_dict[node]),
+                                   checked=[node] if node != '' else [],
+                                   only_leaf_checkboxes=False,
+                                   no_cascade=True)
 
 df = df[df.region.isin(selected_regions['checked'])]
 
