@@ -28,6 +28,18 @@ Under "Basic Options", you can select the following:
 - **Strain:** Select one or more strains to filter the data. If none is selected, data for all strains will be included.
 - **Transgenic Line:** Select one or more transgenic lines to filter the data. If none is selected, data for all transgenic lines will be included.
 
+##### Parameters
+
+You can select from the following parameters to visualize:
+
+- **count3d:** The number of cells in a 3D model of the selected region.
+- **density3d:** The density of cells in a 3D model of the selected region, calculated as the number of cells divided by the volume of the region.
+- **volume:** The total volume of the selected region.
+- **area:** The surface area of a single cell.
+- **coverage:** The percentage of the area around a single cell that is covered by other cells.
+- **diameter:** The diameter of a single cell.
+- **perimeter:** The perimeter (or boundary) length of a single cell.
+
 #### Region
 
 Under "Region", you can select the brain region(s) to include in your data. You can select region from the tree and use search box to locate a region within the tree.

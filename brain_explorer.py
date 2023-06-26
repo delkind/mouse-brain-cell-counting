@@ -18,15 +18,12 @@ from explorer.explorer_utils import hist
 mcc = MouseConnectivityCache(manifest_file='./.mouse_connectivity/mouse_connectivity_manifest.json', resolution=25)
 structure_tree = mcc.get_structure_tree()
 
-HIDDEN_PARAMETERS = ['count',
-                     'count_left',
-                     'count_right',
+HIDDEN_PARAMETERS = {'count',
                      'density',
-                     'density_left',
-                     'density_right',
                      'section_count',
                      'brightness',
-                     'injection']
+                     'region_area',
+                     'injection'}
 
 BOTH_HEMISPHERES = 'both'
 
@@ -145,8 +142,8 @@ def render_region_selection(df, genders, nodes, nodes_dict, selected_genders, se
 def render_basic_parameters(df, macroscopic, microscopic):
     st.sidebar.header('Basic Options')
     parameters = {**microscopic, **macroscopic}
-    selected_param = st.sidebar.selectbox('Parameter', [v for v in sorted(macroscopic.keys()) +
-                                                        sorted(microscopic.keys()) if v not in HIDDEN_PARAMETERS])
+    selected_param = st.sidebar.selectbox('Parameter', [v for v in (sorted(macroscopic.keys()) +
+                                                        sorted(microscopic.keys())) if v not in HIDDEN_PARAMETERS])
     selected_hemisphere = st.sidebar.selectbox('Hemisphere', parameters[selected_param][1])
     selected_aggregation = st.sidebar.selectbox('Aggregation (for microscopic parameters)',
                                                 parameters[selected_param][0])
