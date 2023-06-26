@@ -82,15 +82,6 @@ def load_data():
     return joined.reset_index(), nodes, nodes_dict, stats.set_index(['experiment_id', 'region']).columns
 
 
-def remove_selected(selected_region_groups=None):
-    for g in selected_region_groups:
-        del st.session_state.region_group[g]
-
-
-def clear_selected():
-    st.session_state.region_group = dict()
-
-
 def render_histogram_options():
     st.sidebar.header("Histogram options")
     bins = st.sidebar.slider("Histogram bins", min_value=10, max_value=50, value=20)
@@ -100,15 +91,22 @@ def render_histogram_options():
 
 
 def render_selection_management(complete_selection, df, selected_parameter, title):
+    def remove_selected():
+        for g in selected_region_groups:
+            del st.session_state.region_group[g]
+
+    def clear_selected():
+        st.session_state.region_group = dict()
+
     st.sidebar.header("Selection Management")
     # Button to add the selected region to the group
     if st.sidebar.button('Add to Selected', disabled=not complete_selection):
-        st.session_state.region_group[title] = df[selected_parameter]
+        st.session_state.region_group[f'{title} ({len(df.experiment_id.unique())})'] = df[selected_parameter]
     selected_region_groups = st.sidebar.multiselect('Selected', st.session_state.region_group.keys())
     if not selected_region_groups:
         selected_region_groups = st.session_state.region_group.keys()
     col1, col2 = st.sidebar.columns(2, gap='small')
-    col1.button('Remove from Selected', on_click=lambda: remove_selected(selected_region_groups),
+    col1.button('Remove from Selected', on_click=remove_selected,
                 disabled=(selected_region_groups == st.session_state.region_group.keys()))
     col2.button('Clear All', on_click=clear_selected)
     return selected_region_groups
@@ -146,6 +144,8 @@ def render_filtering_criteria(df, filtering_criteria):
             selected_criteria[col] = unique_values[col]
 
         df = df[df[col].isin(selected_criteria[col])]
+
+    st.sidebar.text(f"Selected {len(df.experiment_id.unique())} brains.")
     return df, selected_criteria, unique_values
 
 
