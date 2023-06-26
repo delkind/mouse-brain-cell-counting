@@ -14,9 +14,7 @@ from streamlit_tree_select import tree_select
 
 from explorer.explorer_utils import hist
 
-# Create an instance of the cache class
-mcc = MouseConnectivityCache(manifest_file='./.mouse_connectivity/mouse_connectivity_manifest.json', resolution=25)
-structure_tree = mcc.get_structure_tree()
+FILTERING_CRITERIA = [('gender', 'Sex'), ('strain', 'Strain'), ('transgenic_line', 'Transgenic line')]
 
 HIDDEN_PARAMETERS = {'count',
                      'density',
@@ -46,7 +44,7 @@ def separate_hemispheres(parameters):
 
 # Function to load your dataframe, decorated with st.cache so it's only loaded once
 @st.cache_data
-def load_my_dataframe():
+def load_data():
     def convert_node(node, regions, path, nodes_dict):
         children = structure_tree.children([node['id']])[0]
         children = [convert_node(child, regions, path + [child['acronym']], nodes_dict) for child in children]
@@ -69,15 +67,14 @@ def load_my_dataframe():
     exps = mcc.get_experiments(dataframe=True)
     exps = exps.drop_duplicates(['id']).set_index('id')
 
-    exps = exps[['gender', 'strain', 'transgenic_line']].copy()
-    exps.strain[exps.strain.isin([None])] = 'Unspecified'
-    exps.transgenic_line[exps.transgenic_line.isin([None])] = 'Unspecified'
-    exps.gender[exps.gender.isin([None])] = 'Unspecified'
+    filtering_columns = list(map(operator.itemgetter(0), FILTERING_CRITERIA))
+    exps = exps[filtering_columns].copy()
+    for col in filtering_columns:
+        exps[col][exps[col].isin([None])] = 'Unspecified'
 
     joined = stats.join(exps, on='experiment_id').set_index("experiment_id")
 
     structure_tree = mcc.get_structure_tree()
-
     root = structure_tree.get_structures_by_acronym(['grey'])[0]
     nodes_dict = {"": ['grey']}
     nodes = [convert_node(root, set(joined.region.unique()), ['grey'], nodes_dict)]
@@ -117,8 +114,7 @@ def render_selection_management(complete_selection, df, selected_parameter, titl
     return selected_region_groups
 
 
-def render_region_selection(df, genders, nodes, nodes_dict, selected_genders, selected_parameter, selected_strains,
-                            selected_transgenic_lines, strains, transgenic_lines):
+def render_region_selection(df, nodes, nodes_dict, selected_parameter, selected_criteria, unique_values):
     st.sidebar.header("Region")
     node = st.sidebar.selectbox("Search region", sorted(nodes_dict.keys()))
     with st.sidebar:
@@ -132,11 +128,25 @@ def render_region_selection(df, genders, nodes, nodes_dict, selected_genders, se
     complete_selection = (len(df) > 0)
     if 'region_group' not in st.session_state:
         st.session_state.region_group = dict()
-    title_values = [(selected_genders, genders), (selected_strains, strains),
-                    (selected_transgenic_lines, transgenic_lines), (selected_regions['checked'], None)]
+    title_values = [(selected_criteria[c], unique_values[c]) for c in selected_criteria.keys()]
+    title_values += [(selected_regions['checked'], None)]
     title = ":".join([','.join(act) if act is not dv else "<All>" for act, dv in title_values] + [selected_parameter])
     st.sidebar.text_input("Selection Title", value=title, disabled=not complete_selection)
     return complete_selection, df, title
+
+
+def render_filtering_criteria(df, filtering_criteria):
+    selected_criteria = dict()
+    unique_values = dict()
+    for col, title in filtering_criteria:
+        unique_values[col] = df[col].unique()
+        selected_criteria[col] = st.sidebar.multiselect(title, unique_values[col], default=[])
+
+        if not selected_criteria[col]:
+            selected_criteria[col] = unique_values[col]
+
+        df = df[df[col].isin(selected_criteria[col])]
+    return df, selected_criteria, unique_values
 
 
 def render_basic_parameters(df, macroscopic, microscopic):
@@ -149,22 +159,10 @@ def render_basic_parameters(df, macroscopic, microscopic):
                                                 parameters[selected_param][0])
     selected_parameter = '_'.join([v for v in [selected_param, selected_hemisphere] if v is not BOTH_HEMISPHERES])
     selected_parameter = '|'.join([v for v in [selected_parameter, selected_aggregation] if v is not None])
-    genders = df['gender'].unique()
-    selected_genders = st.sidebar.multiselect('Sex', genders, default=[])
-    if not selected_genders:
-        selected_genders = genders
-    df = df[df.gender.isin(selected_genders)]
-    strains = df['strain'].unique()
-    selected_strains = st.sidebar.multiselect('Strain', strains, default=[])
-    if not selected_strains:
-        selected_strains = strains
-    df = df[df.strain.isin(selected_strains)]
-    transgenic_lines = df['transgenic_line'].unique()
-    selected_transgenic_lines = st.sidebar.multiselect('Transgenic Line', transgenic_lines, default=[])
-    if not selected_transgenic_lines:
-        selected_transgenic_lines = transgenic_lines
-    df = df[df.transgenic_line.isin(selected_transgenic_lines)]
-    return df, genders, selected_genders, selected_parameter, selected_strains, selected_transgenic_lines, strains, transgenic_lines
+
+    df, selected_criteria, unique_values = render_filtering_criteria(df, FILTERING_CRITERIA)
+
+    return df, selected_parameter, selected_criteria, unique_values
 
 
 def render_sidebar(df, macroscopic, microscopic, nodes, nodes_dict):
@@ -172,11 +170,9 @@ def render_sidebar(df, macroscopic, microscopic, nodes, nodes_dict):
     st.sidebar.title('Brain Explorer')
     st.sidebar.markdown("See <a href='https://elifesciences.org/articles"
                         "/82376'>the article</a> for details", unsafe_allow_html=True)
-    df, genders, selected_genders, selected_parameter, selected_strains, selected_transgenic_lines, strains, transgenic_lines = render_basic_parameters(
-        df, macroscopic, microscopic)
-    complete_selection, df, title = render_region_selection(df, genders, nodes, nodes_dict, selected_genders,
-                                                            selected_parameter, selected_strains,
-                                                            selected_transgenic_lines, strains, transgenic_lines)
+    df, selected_parameter, selected_criteria, unique_values = render_basic_parameters(df, macroscopic, microscopic)
+    complete_selection, df, title = render_region_selection(df, nodes, nodes_dict, selected_parameter,
+                                                            selected_criteria, unique_values)
     selected_region_groups = render_selection_management(complete_selection, df, selected_parameter, title)
     bins, show_median, show_steps = render_histogram_options()
     return bins, selected_region_groups, show_median, show_steps
@@ -252,7 +248,7 @@ def compute_parameters(parameters):
 
 
 def main():
-    df, nodes, nodes_dict, parameters = load_my_dataframe()
+    df, nodes, nodes_dict, parameters = load_data()
     macroscopic, microscopic = compute_parameters(parameters)
 
     bins, selected_region_groups, show_median, show_steps = render_sidebar(df, macroscopic, microscopic, nodes,
