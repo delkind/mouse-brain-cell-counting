@@ -129,6 +129,9 @@ def render_region_selection(df, nodes, nodes_dict, selected_parameter, selected_
     title_values = [(selected_criteria[c], unique_values[c]) for c in selected_criteria.keys()]
     title_values += [(selected_regions['checked'], None)]
     title = ":".join([','.join(act) if act is not dv else "<All>" for act, dv in title_values] + [selected_parameter])
+    if not complete_selection:
+        title = "Please select a region"
+
     st.sidebar.text_input("Selection Title", value=title, disabled=not complete_selection)
     return complete_selection, df, title
 
