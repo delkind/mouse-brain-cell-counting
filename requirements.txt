@@ -13,7 +13,7 @@ pyarrow
 widgetsnbextension
 voila
 hdmf==3.4.7
-pandas==1.2.0
+pandas==1.2.5
 statsmodels
 ipywidgets
 ipython
